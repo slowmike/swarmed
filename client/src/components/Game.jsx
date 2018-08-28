@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
+import axios from 'axios';
 import Player from './Player.js';
 import Enemy from './Enemy.js';
 import {
@@ -10,6 +11,7 @@ import {
   drawEnemy,
   drawScoreboard,
   drawEndScreen,
+  drawScores,
 } from './helpers/drawers.js';
 
 export default class Game extends Component {
@@ -18,7 +20,7 @@ export default class Game extends Component {
     const width = window.innerWidth;
     const height = window.innerHeight;
     this.state = {
-      screen: 1,
+      screen: 0,
       width: width,
       height: height,
       mousePosition: {
@@ -29,7 +31,9 @@ export default class Game extends Component {
       ctx: {},
       fps: 30,
       player: {},
+      startButton: {},
       defaultStats: {
+        name: 'Michael',
         size: 50,
         speed: 3,
         health: 10,
@@ -39,18 +43,22 @@ export default class Game extends Component {
       enemies: [],
       enemiesKilled: 0,
       enemiesCount: 20,
+      highScores: [],
     }
   }
 
   componentDidMount() {
     const canvas = document.getElementById('game-canvas');
-    const { size, speed, health, shotsPerSecond, immuneTime } = this.state.defaultStats;
     this.setState({
       canvas: canvas,
       ctx: canvas.getContext('2d'),
-      player: new Player(this.state.width, this.state.height, size, speed, health, shotsPerSecond, immuneTime),
     });
-    const screens = [this.startScreen.bind(this), this.gameScreen.bind(this), this.endScreen.bind(this)];
+    const screens = [
+      this.startScreen.bind(this),
+      this.gameScreen.bind(this),
+      this.endScreen.bind(this),
+      this.highScoresScreen.bind(this),
+    ];
     setInterval(() => {
       screens[this.state.screen]();
       // this.gameScreen();
@@ -60,7 +68,8 @@ export default class Game extends Component {
 
   startScreen() {
     const { ctx, width, height } = this.state;
-    drawStartScreen(ctx, width, height);
+    const startButton = drawStartScreen(ctx, width, height);
+    this.setState({ startButton: startButton });
   }
 
   gameScreen() {
@@ -73,9 +82,15 @@ export default class Game extends Component {
   }
 
   endScreen() {
-    const { canvas, ctx, width, height } = this.state;
+    const { canvas, ctx, width, height, enemiesKilled } = this.state;
     drawCanvas(ctx, canvas);
-    drawEndScreen(ctx, width, height);
+    drawEndScreen(ctx, width, height, enemiesKilled);
+  }
+
+  highScoresScreen() {
+    const { ctx, canvas, width, highScores } = this.state;
+    drawCanvas(ctx, canvas);
+    drawScores(ctx, width, highScores);
   }
 
   handleKeyEvent(e) {
@@ -90,7 +105,34 @@ export default class Game extends Component {
   }
 
   handleClickEvent(e) {
-    this.state.player.handleClickEvent(e);
+    const { screen, mousePosition, player, startButton } = this.state;
+    const mosX = mousePosition.x;
+    const mosY = mousePosition.y;
+    if (screen === 0) {
+      const inX = (mosX >= startButton[0] && mosX <= startButton[0]+startButton[2]);
+      const inY = (mosY >= startButton[1] && mosY <= startButton[1]+startButton[3]);
+      if(inX && inY) {
+        const newName = prompt('What is your Name?')
+        this.state.defaultStats.name = newName;
+        console.log(this.state.defaultStats.name);
+        const { name, size, speed, health, shotsPerSecond, immuneTime } = this.state.defaultStats;
+        this.setState({
+          screen: 1,
+          player: new Player(name, this.state.width, this.state.height, size, speed, health, shotsPerSecond, immuneTime),
+        });
+      }
+    } else if ( screen === 1 ) {
+      player.handleClickEvent(e);
+    } else if ( screen === 2 ) {
+      axios.post('/api/score', { player: player.name, score: this.state.enemiesKilled })
+        .then(() => {
+          axios.get('/api/highScores')
+            .then( ({ data }) => {
+              this.setState({highScores: data});
+            });
+          this.setState({screen: 3});
+        });
+    } 
   }
 
   updatePlayer() {
@@ -142,8 +184,9 @@ export default class Game extends Component {
   }
 
   updateScoreboard() {
-    const { ctx, width, height, player, enemiesKilled, enemies } = this.state;
-    drawScoreboard(ctx, width, height, player, enemiesKilled, enemies);
+    const { ctx, width, player, enemiesKilled, enemies } = this.state;
+    console.log(player);
+    drawScoreboard(ctx, width, player, enemiesKilled, enemies);
   }
 
   render() {

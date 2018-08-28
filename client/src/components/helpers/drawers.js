@@ -3,10 +3,19 @@ const drawCanvas = (ctx, canvas) => {
 }
 
 const drawStartScreen = (ctx, width, height) => {
-  ctx.fillStyle = "white";
-  ctx.font = '60px Arial';
-  ctx.fillText('Swarmed', width/2, height/2-100);
-  ctx.fillRect(width/4, height/2+100, width/2, 100);
+  ctx.fillStyle = 'white';
+  ctx.textAlign = 'center'
+  ctx.font = '100px Arial';
+  ctx.fillText('Swarmed', width/2, height/2);
+
+  ctx.fillStyle = 'white';
+  const button = [width/2-240, height/2+100, 480, 100]
+  ctx.fillRect(...button);
+
+  ctx.fillStyle = 'black';
+  ctx.font = '40px Arial';
+  ctx.fillText('Click to Start Game!', width/2, height/2+165);
+  return button;
 }
 
 const drawPlayer = (ctx, player, color = 'yellow') => {
@@ -38,18 +47,34 @@ const drawEnemy = (ctx, enemy, color = 'red') => {
   ctx.stroke();
 }
 
-const drawScoreboard = (ctx, width, height, player, enemiesKilled, enemiesRemaining, color = 'white') => {
+const drawScoreboard = (ctx, width, player, enemiesKilled, enemiesRemaining, color = 'white') => {
   ctx.fillStyle = color;
+  ctx.textAlign = 'left';
   ctx.font = '20px Arial';
   ctx.fillText(`HP: ${player.health}`, 10, 20);
   ctx.fillText(`Enemies Eliminated: ${enemiesKilled}`, width/2-125, 20);
   ctx.fillText(`Enemies Remaining: ${enemiesRemaining.length}`, width-225, 20);
 }
 
-const drawEndScreen = (ctx, width, height) => {
-  ctx.fillStyle = "white";
+const drawEndScreen = (ctx, width, height, enemiesKilled) => {
+  ctx.fillStyle = 'white';
+  ctx.textAlign = 'center';
   ctx.font = '100px Arial';
-  ctx.fillText('Game Over!', width/2-275, height/2);
+  ctx.fillText('Game Over!', width/2, height/2);
+  ctx.font = '40px Arial';
+  ctx.fillText(`Enemies Killed: ${enemiesKilled}`, width/2, height/2+100);
+}
+
+const drawScores = (ctx, width, highScores) => {
+  ctx.fillStyle = 'white';
+  ctx.textAlign = 'center';
+  ctx.font = '100px Arial';
+  ctx.fillText('High Scores:', width/2, 100);
+  ctx.font = '40px Arial';
+  highScores.forEach((highScore, i) => {
+    const { player, score} = highScore;
+    ctx.fillText(`${player}: ${score}`, width/2, ((i*50)+200) );
+  });
 }
 
 module.exports = {
@@ -60,4 +85,5 @@ module.exports = {
   drawEnemy,
   drawScoreboard,
   drawEndScreen,
+  drawScores,
 }

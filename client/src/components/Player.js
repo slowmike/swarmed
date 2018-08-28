@@ -1,6 +1,7 @@
 import Projectile from './Projectile.js';
 export default class Player {
-  constructor(screenX, screenY, size, speed, health = 50, shotsPerSecond = 5, immuneTime = 1) {
+  constructor(name, screenX, screenY, size, speed, health = 50, shotsPerSecond = 5, immuneTime = 1) {
+    this.name = name;
     this.x = screenX/2;
     this.y = screenY/2;
     this.screenX = screenX;
@@ -61,7 +62,7 @@ export default class Player {
 
   move() {
     const up = (this.keyState.UP || this.keyState.W);
-    const down = (this.keyState.DOWN ||this.keyState.S);
+    const down = (this.keyState.DOWN || this.keyState.S);
     const left = (this.keyState.LEFT || this.keyState.A);
     const right = (this.keyState.RIGHT || this.keyState.D);
     const xConflict = (left === right);

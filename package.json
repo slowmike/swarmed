@@ -4,10 +4,12 @@
   "description": "Top Down Shooter where the player fights waves of enemies",
   "main": "index.js",
   "dependencies": {
+    "axios": "^0.18.0",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.5",
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
+    "body-parser": "^1.18.3",
     "css-loader": "^1.0.0",
     "eslint": "^5.4.0",
     "eslint-config-airbnb": "^17.1.0",
