@@ -2,7 +2,15 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import Player from './Player.js';
 import Enemy from './Enemy.js';
-import { drawCanvas, drawPlayer, drawProjectile, drawEnemy } from './helpers/drawers.js';
+import {
+  drawCanvas,
+  drawStartScreen,
+  drawPlayer,
+  drawProjectile,
+  drawEnemy,
+  drawScoreboard,
+  drawEndScreen,
+} from './helpers/drawers.js';
 
 export default class Game extends Component {
   constructor(props) {
@@ -10,7 +18,7 @@ export default class Game extends Component {
     const width = window.innerWidth;
     const height = window.innerHeight;
     this.state = {
-      screen: 0,
+      screen: 1,
       width: width,
       height: height,
       mousePosition: {
@@ -20,37 +28,54 @@ export default class Game extends Component {
       canvas: {},
       ctx: {},
       fps: 30,
-      player: new Player(width, height, 50, 3),
+      player: {},
+      defaultStats: {
+        size: 50,
+        speed: 3,
+        health: 10,
+        shotsPerSecond: 3,
+        immuneTime: 5,
+      },
       enemies: [],
+      enemiesKilled: 0,
+      enemiesCount: 20,
     }
   }
 
   componentDidMount() {
     const canvas = document.getElementById('game-canvas');
-    this.setState({canvas: canvas, ctx: canvas.getContext('2d')});
+    const { size, speed, health, shotsPerSecond, immuneTime } = this.state.defaultStats;
+    this.setState({
+      canvas: canvas,
+      ctx: canvas.getContext('2d'),
+      player: new Player(this.state.width, this.state.height, size, speed, health, shotsPerSecond, immuneTime),
+    });
     const screens = [this.startScreen.bind(this), this.gameScreen.bind(this), this.endScreen.bind(this)];
-    this.spawnEnemies(20);
     setInterval(() => {
-      // screens[this.state.screen]();
-      this.updateCanvas();
+      screens[this.state.screen]();
+      // this.gameScreen();
     }, 1000/this.state.fps);
 
   }
 
   startScreen() {
     const { ctx, width, height } = this.state;
-    ctx.fillStyle = "white";
-    ctx.font = '60px Arial';
-    ctx.fillText('Swarmed', width/2, height/2-100);
-    ctx.fillRect(width/4, height/2+100, width/2, 100);
+    drawStartScreen(ctx, width, height);
   }
 
   gameScreen() {
+    const { canvas, ctx } = this.state;
+    drawCanvas(ctx, canvas);
+    this.updateProjectiles();
     this.updatePlayer();
+    this.updateEnemies();
+    this.updateScoreboard();
   }
 
   endScreen() {
-    
+    const { canvas, ctx, width, height } = this.state;
+    drawCanvas(ctx, canvas);
+    drawEndScreen(ctx, width, height);
   }
 
   handleKeyEvent(e) {
@@ -68,18 +93,13 @@ export default class Game extends Component {
     this.state.player.handleClickEvent(e);
   }
 
-  updateCanvas() {
-    const { canvas, ctx } = this.state;
-    drawCanvas(ctx, canvas);
-    this.updateProjectiles();
-    this.updatePlayer();
-    this.updateEnemies();
-  }
-
   updatePlayer() {
     const { ctx, player, mousePosition } = this.state;
     player.update(mousePosition);
     drawPlayer(ctx, player);
+    if(player.health <= 0) {
+      this.setState({screen: 2});
+    }
   }
 
   updateProjectiles() {
@@ -92,7 +112,11 @@ export default class Game extends Component {
   }
 
   updateEnemies() {
-    const { ctx, enemies, player } = this.state;
+    const { ctx, enemies, enemiesCount, player } = this.state;
+    if(enemies.length === 0) {
+      this.spawnEnemies(enemiesCount);
+      this.setState({enemiesCount: enemiesCount+10});
+    }
     this.killEnemies();
     enemies.forEach((enemy) => {
       enemy.update(player);
@@ -110,8 +134,16 @@ export default class Game extends Component {
   killEnemies() {
     const { enemies } = this.state;
     enemies.forEach((enemy, i) => {
-      if(!enemy.health) enemies.splice(i, 1); 
+      if(enemy.health <= 0) {
+        enemies.splice(i, 1); 
+        this.setState({enemiesKilled: this.state.enemiesKilled+1});
+      }
     });
+  }
+
+  updateScoreboard() {
+    const { ctx, width, height, player, enemiesKilled, enemies } = this.state;
+    drawScoreboard(ctx, width, height, player, enemiesKilled, enemies);
   }
 
   render() {

@@ -1,19 +1,18 @@
 export default class Enemy {
-  constructor(screenX, screenY, size, speed, health = 1, color = 'red') {
-    this.x = this.random(screenX);
-    this.y = this.random(screenY);
+  constructor(screenX, screenY, size, speed, health = 1) {
+    [this.x, this.y] = this.random(screenX, screenY);
     this.size = size;
     this.radius = size/2;
     this.speed = speed;
     this.velocityX;
     this.velocityY;
-    this.color = color;
     this.health = health;
   }
 
   update(player) {
     const { projectiles } = player;
     this.move(player);
+    this.attack(player);
     this.hit(projectiles);
   }
 
@@ -21,6 +20,15 @@ export default class Enemy {
     [this.velocityX, this.velocityY] = this.calcVelocity(player);
     this.x += this.velocityX;
     this.y += this.velocityY;
+  }
+
+  attack(player) {
+    const dist = Math.sqrt(Math.pow((player.y-this.y), 2) + Math.pow((player.x-this.x), 2));
+    const totRadius = player.radius+this.radius;
+    if(dist < totRadius) {
+      player.hit();
+      console.log(player.health);
+    }
   }
 
   calcVelocity(player) {
@@ -32,16 +40,26 @@ export default class Enemy {
 
   hit(projectiles) {
     projectiles.forEach((projectile) => {
-      const dist = Math.sqrt(Math.pow((projectile.y-this.y), 2) + Math.pow((projectile.x-this.x), 2));
-      const totRadius = projectile.radius+this.radius;
-      if(dist < totRadius) {
-        this.health--;
+      if(projectile.isLive) {
+        const dist = Math.sqrt(Math.pow((projectile.y-this.y), 2) + Math.pow((projectile.x-this.x), 2));
+        const totRadius = projectile.radius+this.radius;
+        if(dist < totRadius) {
+          this.health--;
+          projectile.isLive = 0;
+        }
       }
     })
   }
 
-  random(screenSize) {
-    const randomLoc = ((Math.random()*1000)-500);
-    return randomLoc > 0 ? randomLoc + screenSize : randomLoc;
+  random(screenX, screenY) {
+    let xLoc = (Math.random()*(screenX+1000))-500;
+    let yLoc = (Math.random()*(screenY+1000))-500;
+    const outOfScreenX = (x) => ( (x < (this.radius)) || (x > (screenX + this.radius)) );
+    const outOfScreenY = (y) => ( (y < (this.radius)) || (y > (screenY + this.radius)) );
+    while (outOfScreenX() && outOfScreenY()) {
+      xLoc = (Math.random()*(screenX+1000))-500;
+      yLoc = (Math.random()*(screenY+1000))-500;
+    }
+    return [xLoc, yLoc];
   }
 }

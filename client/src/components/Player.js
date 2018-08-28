@@ -1,19 +1,27 @@
 import Projectile from './Projectile.js';
 export default class Player {
-  constructor(screenX, screenY, size, speed, color = 'white') {
+  constructor(screenX, screenY, size, speed, health = 50, shotsPerSecond = 5, immuneTime = 1) {
     this.x = screenX/2;
     this.y = screenY/2;
     this.screenX = screenX;
     this.screenY = screenY;
     this.size = size;
     this.radius = size/2;
-    this.color = color;
     this.speed = speed;
-    this.isDead = false;
+    this.health = health;
+    this.shotsPerSecond = shotsPerSecond;
+    this.immuneTime = immuneTime;
+    this.projectileStats = {
+      size: 10,
+      speed: 10,
+      power: 1,
+      maxDist: 500,
+    }
     this.projectiles = [];
     this.clickState = false;
     this.shoot = this.shoot.bind(this);
     this.canShoot = true;
+    this.immune = false;
     this.keyCodes = {
       UP: 38,
       LEFT: 37,
@@ -94,11 +102,20 @@ export default class Player {
     if (this.canShoot) {
       const trigger = (this.keyState.SPACE || this.clickState);
       if (trigger) {
-        const projectile = new Projectile(this.x, this.y, mousePosition, 10, 10, 500, 0, "yellow");
+        const { size, speed, power, maxDist} = this.projectileStats;
+        const projectile = new Projectile(this.x, this.y, mousePosition, size, speed, power, maxDist, 0, this.color);
         this.projectiles.push(projectile);
         this.canShoot = false;
-        setTimeout(() => {this.canShoot = true}, 100);
+        setTimeout(() => {this.canShoot = true}, 1000/this.shotsPerSecond);
       }
+    }
+  }
+
+  hit() {
+    if(!this.immune) {
+      this.health--;
+      this.immune = true;
+      setTimeout(() => {this.immune = false}, this.immuneTime*100);
     }
   }
 

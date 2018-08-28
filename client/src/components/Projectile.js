@@ -1,5 +1,5 @@
 export default class Projectile {
-  constructor(x, y, mouse, size, speed, maxDist = 1000, offset = 0, color = 'white') {
+  constructor(x, y, mouse, size, speed, power = 1, maxDist = 1000, offset = 0 ) {
     this.x = x;
     this.y = y;
     this.originX = x;
@@ -10,9 +10,9 @@ export default class Projectile {
     this.destY = mouse.y;
     this.size = size;
     this.radius = size/2;
-    this.offset = offset;
     [this.velocityX, this.velocityY] = this.calcVelocity(speed);
-    this.color = color;
+    this.power = power;
+    this.offset = offset;
     this.isLive = 1;
   }
   
