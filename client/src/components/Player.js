@@ -1,13 +1,23 @@
-import Projectile from './Projectile.js';
+import Projectile from './Projectile';
+
 export default class Player {
-  constructor(name, screenX, screenY, size, speed, health = 50, shotsPerSecond = 5, immuneTime = 1) {
+  constructor(
+    name,
+    screenX,
+    screenY,
+    size,
+    speed,
+    health = 50,
+    shotsPerSecond = 5,
+    immuneTime = 1,
+  ) {
     this.name = name;
-    this.x = screenX/2;
-    this.y = screenY/2;
+    this.x = screenX / 2;
+    this.y = screenY / 2;
     this.screenX = screenX;
     this.screenY = screenY;
     this.size = size;
-    this.radius = size/2;
+    this.radius = size / 2;
     this.speed = speed;
     this.health = health;
     this.shotsPerSecond = shotsPerSecond;
@@ -17,7 +27,7 @@ export default class Player {
       speed: 10,
       power: 1,
       maxDist: 500,
-    }
+    };
     this.projectiles = [];
     this.clickState = false;
     this.shoot = this.shoot.bind(this);
@@ -56,7 +66,7 @@ export default class Player {
     //   if(!this.projectiles[i].isLive) this.projectiles.splice(i, 1);
     // }
     this.projectiles.forEach((projectile, i) => {
-      if(!projectile.isLive) this.projectiles.splice(i, 1); 
+      if (!projectile.isLive) this.projectiles.splice(i, 1); 
     });
   }
 
@@ -68,33 +78,36 @@ export default class Player {
     const xConflict = (left === right);
     const yConflict = (up === down);
     // set diagonal movement velocity to be same as horizontal/vertical
-    const velocity = 
-      ( (!xConflict && !yConflict) && ((up && (right || left)) || (down && (right || left))) ) ? 
-        this.speed*(Math.sqrt(2)/2) :
-        this.speed;
+    const velocity = (
+      (!xConflict && !yConflict)
+      && ((up && (right || left))
+      || (down && (right || left)))
+    )
+      ? this.speed * (Math.sqrt(2) / 2)
+      : this.speed;
     if (up) {
-      this.y-=velocity;
+      this.y -= velocity;
     }
     if (down) {
-      this.y+=velocity;
+      this.y += velocity;
     }
     if (left) {
-      this.x-=velocity;
+      this.x -= velocity;
     }
     if (right) {
-      this.x+=velocity;
+      this.x += velocity;
     }
     // prevent movement out of bounds
-    if(this.x < 0) {
+    if (this.x < 0) {
       this.x = 0;
     }
-    if(this.y < 0) {
+    if (this.y < 0) {
       this.y = 0;
     }
-    if(this.x > this.screenX) {
+    if (this.x > this.screenX) {
       this.x = this.screenX;
     }
-    if(this.y > this.screenY) {
+    if (this.y > this.screenY) {
       this.y = this.screenY;
     }
   }
@@ -103,32 +116,47 @@ export default class Player {
     if (this.canShoot) {
       const trigger = (this.keyState.SPACE || this.clickState);
       if (trigger) {
-        const { size, speed, power, maxDist} = this.projectileStats;
-        const projectile = new Projectile(this.x, this.y, mousePosition, size, speed, power, maxDist, 0, this.color);
+        const {
+          size,
+          speed,
+          power,
+          maxDist,
+        } = this.projectileStats;
+        const projectile = new Projectile(
+          this.x,
+          this.y,
+          mousePosition,
+          size,
+          speed,
+          power,
+          maxDist,
+          0,
+          this.color,
+        );
         this.projectiles.push(projectile);
         this.canShoot = false;
-        setTimeout(() => {this.canShoot = true}, 1000/this.shotsPerSecond);
+        setTimeout(() => { this.canShoot = true; }, 1000 / this.shotsPerSecond);
       }
     }
   }
 
   hit() {
-    if(!this.immune) {
+    if (!this.immune) {
       this.health--;
       this.immune = true;
-      setTimeout(() => {this.immune = false}, this.immuneTime*100);
+      setTimeout(() => { this.immune = false; }, this.immuneTime * 100);
     }
   }
 
   handleKeyEvent(e) {
-    for(let key in this.keyCodes) {
-      if(this.keyCodes[key] === e.keyCode) {
-        this.keyState[key] = e.type == 'keydown';
+    Object.keys(this.keyCodes).forEach((key) => {
+      if (this.keyCodes[key] === e.keyCode) {
+        this.keyState[key] = e.type === 'keydown';
       }
-    }
+    });
   }
 
   handleClickEvent(e) {
-    this.clickState = e.type == 'mousedown';
+    this.clickState = e.type === 'mousedown';
   }
 }
