@@ -19,6 +19,7 @@ module.exports = {
           loader: 'babel-loader',
           options: {
             presets: ['react', 'env'],
+            plugins: ['syntax-dynamic-import', 'transform-object-rest-spread'],
           },
         },
       },

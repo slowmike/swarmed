@@ -32,7 +32,7 @@ export default class Game extends Component {
       player: {},
       startButton: {},
       defaultStats: {
-        name: 'Michael',
+        name: 'Player1',
         size: 50,
         speed: 3,
         health: 10,
@@ -58,8 +58,9 @@ export default class Game extends Component {
       this.endScreen.bind(this),
       this.highScoresScreen.bind(this),
     ];
-    const { screen, fps } = this.state;
+    const { fps } = this.state;
     setInterval(() => {
+      const { screen } = this.state;
       screens[screen]();
       // this.gameScreen();
     }, 1000 / fps);
@@ -112,7 +113,6 @@ export default class Game extends Component {
     const { canvas } = this.state;
     const rect = canvas.getBoundingClientRect();
     this.setState({ mousePosition: { x: e.clientX - rect.left, y: e.clientY - rect.top } });
-    // console.log(this.state.mousePosition.x, this.state.mousePosition.y);
   }
 
   handleClickEvent(e) {
@@ -134,7 +134,7 @@ export default class Game extends Component {
     } else if (screen === 1) {
       player.handleClickEvent(e);
     } else if (screen === 2) {
-      axios.post('/api/score', { player: player.name, score: enemiesKilled })
+      axios.post('/api/score', { player: player.name, timeStamp: new Date(), score: enemiesKilled })
         .then(() => {
           axios.get('/api/highScores')
             .then(({ data }) => {
@@ -148,7 +148,6 @@ export default class Game extends Component {
   initializePlayer() {
     const { width, height, defaultStats } = this.state;
     const {
-      name,
       size,
       speed,
       health,
@@ -156,15 +155,12 @@ export default class Game extends Component {
       immuneTime,
     } = defaultStats;
     const newName = prompt('What is your Name?');
-    this.setState(prevState => ({
-      defaultStats: {
-        ...prevState.defaultStats,
-        name: newName,
-      },
-    }));
+    const stats = { ...defaultStats };
+    stats.name = newName;
     this.setState({
+      defaultStats: stats,
       screen: 1,
-      player: new Player(name, width, height, size, speed, health, shotsPerSecond, immuneTime),
+      player: new Player(newName, width, height, size, speed, health, shotsPerSecond, immuneTime),
     });
   }
 
@@ -222,8 +218,13 @@ export default class Game extends Component {
   }
 
   updateScoreboard() {
-    const { ctx, width, player, enemiesKilled, enemies } = this.state;
-    console.log(player);
+    const {
+      ctx,
+      width,
+      player,
+      enemiesKilled,
+      enemies,
+    } = this.state;
     drawScoreboard(ctx, width, player, enemiesKilled, enemies);
   }
 

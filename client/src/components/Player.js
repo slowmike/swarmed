@@ -66,7 +66,7 @@ export default class Player {
     //   if(!this.projectiles[i].isLive) this.projectiles.splice(i, 1);
     // }
     this.projectiles.forEach((projectile, i) => {
-      if (!projectile.isLive) this.projectiles.splice(i, 1); 
+      if (!projectile.isLive) this.projectiles.splice(i, 1);
     });
   }
 
